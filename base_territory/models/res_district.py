@@ -12,3 +12,6 @@ class ResDistrict(models.Model):
     region_id = fields.Many2one("res.region", string="Region")
     partner_id = fields.Many2one("res.partner", string="District Manager")
     description = fields.Char()
+    polygon_ids = fields.One2many(
+        "res.district.polygon.point", "district_id", string="Polygon Points"
+    )

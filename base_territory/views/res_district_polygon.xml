@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 Mr Abdulkarim M. Mousa -->
+<!-- @ Valutoria L.T.D. <abdulkarim@valutoria.com> -->
+<!-- License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html). -->
 <odoo>
     <!-- Inherit district form to add polygon editor -->
     <record id="res_district_form_view_polygon" model="ir.ui.view">

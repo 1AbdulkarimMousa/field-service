@@ -1,5 +1,9 @@
 /** @odoo-module **/
 
+// Copyright (C) 2026 Mr Abdulkarim M. Mousa
+// @ Valutoria L.T.D. <abdulkarim@valutoria.com>
+// License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
+
 /**
  * District Polygon Map Editor (Google Maps)
  *

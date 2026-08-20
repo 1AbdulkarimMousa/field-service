@@ -1,4 +1,5 @@
-# Copyright (C) 2020 Open Source Integrators
+# Copyright (C) 2026 Mr Abdulkarim M. Mousa
+# @ Valutoria L.T.D. <abdulkarim@valutoria.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import re

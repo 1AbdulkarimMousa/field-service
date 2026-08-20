@@ -82,3 +82,15 @@ class TestResTerritory(TransactionCase):
             self.env["res.territory"].search([("id", "=", territory_id)]),
             "Territory was not deleted",
         )
+
+    def test_find_district_by_coordinates(self):
+        self.district.polygon_ids = [
+            (0, 0, {"sequence": 1, "lat": 0, "lng": 0}),
+            (0, 0, {"sequence": 2, "lat": 0, "lng": 10}),
+            (0, 0, {"sequence": 3, "lat": 10, "lng": 10}),
+            (0, 0, {"sequence": 4, "lat": 10, "lng": 0}),
+        ]
+        self.assertEqual(
+            self.env["res.district"].find_by_coordinates(5, 5), self.district
+        )
+        self.assertFalse(self.env["res.district"].find_by_coordinates(20, 20))

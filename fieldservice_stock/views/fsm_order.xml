@@ -4,6 +4,18 @@
         <field name="model">fsm.order</field>
         <field name="inherit_id" ref="fieldservice.fsm_order_form" />
         <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <field name="is_closed" invisible="1" />
+                <button
+                    name="action_consume_materials"
+                    type="object"
+                    string="Consume Materials"
+                    class="btn-danger"
+                    invisible="is_closed"
+                    groups="base.group_user"
+                    confirm="Are you sure you want to consume these materials?"
+                />
+            </xpath>
             <div class="oe_button_box" position="inside">
                 <field name="picking_ids" invisible="1" />
                 <button
@@ -42,10 +54,11 @@
                         </group>
                         <group id="stock-right" />
                     </group>
-                    <field name="move_ids" readonly="1" invisible="move_ids == False">
+                    <field name="move_ids" readonly="is_closed">
                         <list
                             decoration-muted="state == 'cancel'"
                             default_order='date, picking_id, sequence'
+                            editable="bottom"
                         >
                             <field name="reference" />
                             <field name="date" widget="date" />

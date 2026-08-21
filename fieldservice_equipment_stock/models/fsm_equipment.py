@@ -20,7 +20,14 @@ class FSMEquipment(models.Model):
         stock_quant_obj = self.env["stock.quant"]
         for equipment in self:
             quants = stock_quant_obj.search(
-                [("lot_id", "=", equipment.lot_id.id)], order="id desc", limit=1
+                [
+                    ("product_id", "=", equipment.product_id.id),
+                    ("lot_id", "=", equipment.lot_id.id),
+                    ("quantity", ">", 0),
+                    ("location_id.usage", "=", "internal"),
+                ],
+                order="id desc",
+                limit=1,
             )
             equipment.current_stock_location_id = (
                 quants.location_id and quants.location_id.id or False

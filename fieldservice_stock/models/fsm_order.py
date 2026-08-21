@@ -63,6 +63,28 @@ class FSMOrder(models.Model):
             order.return_count = len(incoming_pickings.ids)
             order.move_ids = order.picking_ids.mapped("move_ids")
 
+    def action_consume_materials(self):
+        """Complete draft stock moves entered manually on the FSM order."""
+        for order in self:
+            draft_moves = order.move_ids.filtered(lambda move: move.state == "draft")
+            if not draft_moves:
+                continue
+            for move in draft_moves:
+                if not move.location_id:
+                    move.location_id = order.warehouse_id.lot_stock_id
+                if not move.location_dest_id:
+                    move.location_dest_id = (
+                        order.inventory_location_id
+                        or order.partner_id.property_stock_customer
+                    )
+                if not move.product_uom:
+                    move.product_uom = move.product_id.uom_id
+            draft_moves._action_confirm()
+            draft_moves._action_assign()
+            draft_moves.picked = True
+            draft_moves._action_done()
+        return True
+
     @api.onchange("person_id")
     def _onchange_person_id(self):
         # Autofill the worker default warehouse if has one

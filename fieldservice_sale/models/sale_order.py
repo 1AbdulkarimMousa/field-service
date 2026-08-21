@@ -92,7 +92,7 @@ class SaleOrder(models.Model):
             note += template.instructions or ""
             hours += template.duration
             categories |= template.category_ids
-        return {
+        vals = {
             "location_id": self.fsm_location_id.id,
             "location_directions": self.fsm_location_id.direction,
             "request_early": self.expected_date,
@@ -105,6 +105,14 @@ class SaleOrder(models.Model):
             "template_id": template_id,
             "company_id": self.company_id.id,
         }
+        service_type = getattr(self.sale_order_template_id, "service_type", "other")
+        if service_type and service_type != "other":
+            order_type = self.env["fsm.order.type"].search(
+                [("service_type", "=", service_type)], limit=1
+            )
+            if order_type:
+                vals["type"] = order_type.id
+        return vals
 
     def _field_service_generate_sale_fsm_orders(self, new_fsm_sol):
         """

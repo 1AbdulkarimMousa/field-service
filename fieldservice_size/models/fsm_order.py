@@ -71,7 +71,7 @@ class FSMOrder(models.Model):
             )
             rec.size_value = size and size.quantity or 0.00
 
-    @api.depends("size_id", "size_id.uom_id")
+    @api.depends("size_id", "size_id.uom_id", "size_id.uom_id.relative_uom_id")
     def _compute_size_uom(self):
         for rec in self:
             rec.size_uom = rec.size_id and rec.size_id.uom_id or False

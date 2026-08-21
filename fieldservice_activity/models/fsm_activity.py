@@ -11,6 +11,7 @@ class FSMActivity(models.Model):
     name = fields.Char(
         required=True,
         readonly=True,
+        translate=True,
     )
     required = fields.Boolean(
         default=False,

@@ -1,7 +1,7 @@
 # Copyright (C) 2019 Brian McMaster
 # Copyright (C) 2019 Gray Matter Logic
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
-from odoo import fields, models
+from odoo import _, fields, models
 
 
 class FSMOrder(models.Model):
@@ -9,6 +9,22 @@ class FSMOrder(models.Model):
 
     sale_id = fields.Many2one("sale.order")
     sale_line_id = fields.Many2one("sale.order.line")
+
+    def action_create_quotation(self):
+        self.ensure_one()
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "sale.action_quotations_new"
+        )
+        partner = self.location_id.owner_id or self.location_id.partner_id
+        action["context"] = {
+            "default_partner_id": partner.id,
+            "default_fsm_location_id": self.location_id.id,
+            "default_origin": self.name,
+            "default_company_id": self.company_id.id,
+        }
+        if hasattr(self, "opportunity_id") and self.opportunity_id:
+            action["context"]["default_opportunity_id"] = self.opportunity_id.id
+        return action
 
     def action_view_sales(self):
         self.ensure_one()

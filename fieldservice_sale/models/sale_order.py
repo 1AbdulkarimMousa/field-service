@@ -70,7 +70,10 @@ class SaleOrder(models.Model):
         self.ensure_one()
         templates = line.product_id.fsm_order_template_id
         vals = self._prepare_fsm_values(
-            so_id=self.id, sol_id=line.id, template_id=templates.id
+            so_id=self.id,
+            sol_id=line.id,
+            template_id=templates.id,
+            service_type=line.product_id.service_type,
         )
         return vals
 
@@ -92,7 +95,7 @@ class SaleOrder(models.Model):
             note += template.instructions or ""
             hours += template.duration
             categories |= template.category_ids
-        return {
+        vals = {
             "location_id": self.fsm_location_id.id,
             "location_directions": self.fsm_location_id.direction,
             "request_early": self.expected_date,
@@ -105,6 +108,14 @@ class SaleOrder(models.Model):
             "template_id": template_id,
             "company_id": self.company_id.id,
         }
+        service_type = kwargs.get("service_type", "other")
+        if service_type and service_type != "other":
+            order_type = self.env["fsm.order.type"].search(
+                [("service_type", "=", service_type)], limit=1
+            )
+            if order_type:
+                vals["type"] = order_type.id
+        return vals
 
     def _field_service_generate_sale_fsm_orders(self, new_fsm_sol):
         """
@@ -119,8 +130,13 @@ class SaleOrder(models.Model):
             )
             if not fsm_by_sale:
                 templates = new_fsm_sol.product_id.fsm_order_template_id
+                service_types = set(
+                    new_fsm_sol.mapped("product_id.service_type")
+                ) - {False, "other"}
                 vals = self._prepare_fsm_values(
-                    so_id=self.id, template_ids=templates.ids
+                    so_id=self.id,
+                    template_ids=templates.ids,
+                    service_type=service_types.pop() if len(service_types) == 1 else "other",
                 )
                 fsm_by_sale = self.env["fsm.order"].sudo().create(vals)
                 new_fsm_orders |= fsm_by_sale

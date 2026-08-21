@@ -258,20 +258,25 @@ class FSMOrder(models.Model):
         self.ensure_one()
         if not self.scheduled_date_start:
             return
-        if not self.person_id:
+        route = self.fsm_route_id
+        person = route.fsm_person_id if route else self.person_id
+        if not person:
             if self.dayroute_id:
                 self.write({"dayroute_id": False})
             return
         old_dayroute = self.dayroute_id
         managed = self._manage_fsm_route(
             {
-                "person_id": self.person_id.id,
+                "fsm_route_id": route.id if route else False,
+                "person_id": person.id,
                 "scheduled_date_start": self.scheduled_date_start,
             }
         )
         new_dayroute_id = managed.get("dayroute_id")
-        if new_dayroute_id and new_dayroute_id != old_dayroute.id:
-            self.write({"dayroute_id": new_dayroute_id})
+        updates = {"person_id": person.id}
+        if new_dayroute_id != (old_dayroute.id if old_dayroute else False):
+            updates["dayroute_id"] = new_dayroute_id
+        self.write(updates)
 
     @api.model_create_multi
     def create(self, vals_list):

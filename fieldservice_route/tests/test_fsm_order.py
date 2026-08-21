@@ -1304,6 +1304,29 @@ class TestFSMOrderRoute(FSMCommon):
         self.assertNotEqual(order.dayroute_id, old_dayroute)
         self.assertFalse(old_dayroute.exists())
 
+    def test_location_route_change_propagates_unstaffed_route(self):
+        other_route = self.fsm_route_obj.create(
+            {
+                "name": "Unstaffed Location Change Route",
+                "max_order": 10,
+                "day_ids": [(6, 0, self.days)],
+            }
+        )
+        order = self.env["fsm.order"].create(
+            {
+                "location_id": self.test_location.id,
+                "scheduled_date_start": self.date,
+                "person_id": self.test_person.id,
+            }
+        )
+        old_dayroute = order.dayroute_id
+
+        self.test_location.fsm_route_id = other_route
+
+        self.assertFalse(order.person_id)
+        self.assertFalse(order.dayroute_id)
+        self.assertFalse(old_dayroute.exists())
+
     def test_write_location_to_unstaffed_route_clears_dayroute(self):
         unstaffed_route = self.fsm_route_obj.create(
             {

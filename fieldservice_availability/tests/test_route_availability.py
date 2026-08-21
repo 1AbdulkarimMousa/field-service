@@ -83,3 +83,52 @@ class TestRouteAvailability(FSMCommon):
                 }
             )
         )
+
+    def test_location_route_change_reassigns_dayroute(self):
+        other_person = self.env["fsm.person"].create({"name": "Other Route Worker"})
+        other_route = self.env["fsm.route"].create(
+            {
+                "name": "Location Change Target Route",
+                "max_order": 10,
+                "fsm_person_id": other_person.id,
+                "day_ids": [(6, 0, self.days)],
+            }
+        )
+        order = self.Order.create(
+            {
+                "location_id": self.test_location.id,
+                "scheduled_date_start": fields.Datetime.now() + timedelta(days=1),
+                "person_id": self.test_person.id,
+            }
+        )
+        old_dayroute = order.dayroute_id
+
+        self.test_location.fsm_route_id = other_route
+
+        self.assertEqual(order.person_id, other_person)
+        self.assertEqual(order.dayroute_id.route_id, other_route)
+        self.assertNotEqual(order.dayroute_id, old_dayroute)
+        self.assertFalse(old_dayroute.exists())
+
+    def test_location_route_change_clears_unstaffed_assignment(self):
+        other_route = self.env["fsm.route"].create(
+            {
+                "name": "Unstaffed Location Change Route",
+                "max_order": 10,
+                "day_ids": [(6, 0, self.days)],
+            }
+        )
+        order = self.Order.create(
+            {
+                "location_id": self.test_location.id,
+                "scheduled_date_start": fields.Datetime.now() + timedelta(days=1),
+                "person_id": self.test_person.id,
+            }
+        )
+        old_dayroute = order.dayroute_id
+
+        self.test_location.fsm_route_id = other_route
+
+        self.assertFalse(order.person_id)
+        self.assertFalse(order.dayroute_id)
+        self.assertFalse(old_dayroute.exists())

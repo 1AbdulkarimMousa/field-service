@@ -8,6 +8,31 @@ from odoo.tools.misc import format_date
 class FSMRoute(models.Model):
     _inherit = "fsm.order"
 
+    def _reassign_dayroute_for_person_timezone(self):
+        """Re-evaluate the day route after the assigned route changes."""
+        self.ensure_one()
+        if not self.scheduled_date_start:
+            return
+        route = self.fsm_route_id
+        person = route.fsm_person_id if route else self.person_id
+        if not person:
+            if self.dayroute_id:
+                self.write({"dayroute_id": False})
+            return
+        old_dayroute = self.dayroute_id
+        managed = self._manage_fsm_route(
+            {
+                "fsm_route_id": route.id if route else False,
+                "person_id": person.id,
+                "scheduled_date_start": self.scheduled_date_start,
+            }
+        )
+        new_dayroute_id = managed.get("dayroute_id")
+        updates = {"person_id": person.id}
+        if new_dayroute_id != (old_dayroute.id if old_dayroute else False):
+            updates["dayroute_id"] = new_dayroute_id
+        self.write(updates)
+
     @api.constrains("scheduled_date_start", "location_id")
     def check_black_out_days(self):
         for order in self:

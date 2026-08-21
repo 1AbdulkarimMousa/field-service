@@ -15,6 +15,8 @@
         "views/res_territory.xml",
         "views/res_branch.xml",
         "views/res_district.xml",
+        "views/res_district_polygon.xml",
+        "views/res_partner.xml",
         "views/res_region.xml",
         "views/res_country.xml",
         "views/menu.xml",

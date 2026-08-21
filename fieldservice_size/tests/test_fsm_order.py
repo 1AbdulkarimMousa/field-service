@@ -56,3 +56,9 @@ class TestFSMSize(FSMCommon):
         self.assertEqual(order.size_id, self.size_a)
         self.assertEqual(order.size_value, 24.5)
         self.assertEqual(order.size_uom, self.size_a.uom_id)
+
+    def test_size_uom_domain_uses_relative_uom(self):
+        field = self.Order._fields["size_uom"]
+
+        self.assertIn("relative_uom_id", field.domain)
+        self.assertIn("size_relative_uom_id", field.domain)

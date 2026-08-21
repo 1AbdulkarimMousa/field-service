@@ -47,6 +47,18 @@
             >
                 <field name="fsm_location_id" groups="fieldservice.group_fsm_user" />
             </xpath>
+            <xpath expr="//div[hasclass('o_address_format')]//field[@name='city']" position="before">
+                <field name="district_id" placeholder="District" />
+                <field name="region_id" placeholder="Region" />
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <group string="Geolocation" name="territory_geolocation">
+                    <group>
+                        <field name="partner_latitude" />
+                        <field name="partner_longitude" />
+                    </group>
+                </group>
+            </xpath>
         </field>
     </record>
     <record id="fieldservice_crm_list_view" model="ir.ui.view">

@@ -196,6 +196,7 @@ class SaleOrder(models.Model):
             values.update(
                 {
                     "dayroute_id": dayroute.id,
+                    "fsm_route_id": dayroute.route_id.id,
                     "person_id": dayroute.person_id.id,
                     "team_id": dayroute.team_id.id,
                     "request_early": dayroute.date_start_planned,

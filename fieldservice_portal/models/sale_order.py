@@ -57,9 +57,7 @@ class SaleOrder(models.Model):
             type(self)._is_paid, "mock_return_value"
         ):
             return False
-        return (
-            self._is_paid()
-        )
+        return self._is_paid()
 
     def _has_to_be_signed(self):
         self.ensure_one()

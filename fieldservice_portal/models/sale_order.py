@@ -31,8 +31,6 @@ class SaleOrder(models.Model):
                     _logger.exception(
                         "Customer notification failed for sale.order %s", order.id
                     )
-                if vals["state"] == "sale" and not order.fsm_order_ids:
-                    order._field_service_generation()
         return result
 
     def _get_service_type(self):
@@ -233,11 +231,6 @@ class SaleOrder(models.Model):
                     lock=True,
                 )
         return super()._field_service_generation()
-
-    def action_confirm(self):
-        result = super().action_confirm()
-        self._field_service_generation()
-        return result
 
     def _on_state_change(self, new_state):
         self.ensure_one()

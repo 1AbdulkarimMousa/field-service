@@ -234,6 +234,16 @@ class SaleOrder(models.Model):
                 )
         return super()._field_service_generation()
 
+    def _action_confirm(self):
+        result = super()._action_confirm()
+        for order in self.filtered("portal_dayroute_id"):
+            if not order.fsm_order_ids:
+                lines = order.order_line.filtered(
+                    lambda line: line.display_type not in ("line_section", "line_note")
+                )
+                order._field_service_generate_sale_fsm_orders(lines)
+        return result
+
     def _on_state_change(self, new_state):
         self.ensure_one()
         if not self.partner_id:

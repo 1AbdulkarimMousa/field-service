@@ -32,29 +32,6 @@ class SaleOrder(models.Model):
                     _logger.exception(
                         "Customer notification failed for sale.order %s", order.id
                     )
-                if (
-                    order._get_service_type() == "survey"
-                    and order.fsm_location_id
-                    and not order.fsm_order_ids
-                ):
-                    lines = order.order_line.filtered(
-                        lambda line: line.display_type
-                        not in ("line_section", "line_note")
-                    )
-                    sale_line = (
-                        lines.filtered(
-                            lambda line: line.product_id.field_service_tracking
-                            == "sale"
-                        )[:1]
-                        or lines[:1]
-                    )
-                    if sale_line:
-                        fsm_order = (
-                            self.env["fsm.order"]
-                            .sudo()
-                            .create(order._prepare_line_fsm_values(sale_line))
-                        )
-                        sale_line.write({"fsm_order_id": fsm_order.id})
         return result
 
     def _get_service_type(self):
@@ -256,30 +233,6 @@ class SaleOrder(models.Model):
                     lock=True,
                 )
         return super()._field_service_generation()
-
-    def _action_confirm(self):
-        result = super()._action_confirm()
-        for order in self:
-            if order._get_service_type() != "survey" or not order.fsm_location_id:
-                continue
-            if not order.fsm_order_ids:
-                lines = order.order_line.filtered(
-                    lambda line: line.display_type not in ("line_section", "line_note")
-                )
-                sale_line = (
-                    lines.filtered(
-                        lambda line: line.product_id.field_service_tracking == "sale"
-                    )[:1]
-                    or lines[:1]
-                )
-                if sale_line:
-                    fsm_order = (
-                        self.env["fsm.order"]
-                        .sudo()
-                        .create(order._prepare_line_fsm_values(sale_line))
-                    )
-                    sale_line.write({"fsm_order_id": fsm_order.id})
-        return result
 
     def _on_state_change(self, new_state):
         self.ensure_one()

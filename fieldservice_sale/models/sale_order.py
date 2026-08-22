@@ -109,11 +109,7 @@ class SaleOrder(models.Model):
             "company_id": self.company_id.id,
         }
         service_type = kwargs.get("service_type", "other")
-        if (
-            service_type
-            and service_type != "other"
-            and "service_type" in self.env["fsm.order.type"]._fields
-        ):
+        if "service_type" in self.env["fsm.order.type"]._fields:
             order_type = self.env["fsm.order.type"].search(
                 [("service_type", "=", service_type)], limit=1
             )

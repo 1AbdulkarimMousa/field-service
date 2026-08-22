@@ -73,6 +73,10 @@ class ResPartner(models.Model):
 
     def write(self, vals):
         values = self._normalize_territory_values(vals)
+        if "country_id" in values and "state_id" not in values:
+            values.update(state_id=False, region_id=False, district_id=False)
+        elif "state_id" in values and "region_id" not in values:
+            values.update(region_id=False, district_id=False)
         return super().write(values)
 
     @api.constrains("district_id", "region_id", "state_id", "country_id")

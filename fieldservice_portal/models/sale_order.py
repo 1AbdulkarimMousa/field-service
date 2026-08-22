@@ -241,7 +241,19 @@ class SaleOrder(models.Model):
                 lines = order.order_line.filtered(
                     lambda line: line.display_type not in ("line_section", "line_note")
                 )
-                order._field_service_generate_sale_fsm_orders(lines)
+                sale_line = (
+                    lines.filtered(
+                        lambda line: line.product_id.field_service_tracking == "sale"
+                    )[:1]
+                    or lines[:1]
+                )
+                if sale_line:
+                    fsm_order = (
+                        self.env["fsm.order"]
+                        .sudo()
+                        .create(order._prepare_line_fsm_values(sale_line))
+                    )
+                    sale_line.write({"fsm_order_id": fsm_order.id})
         return result
 
     def _on_state_change(self, new_state):

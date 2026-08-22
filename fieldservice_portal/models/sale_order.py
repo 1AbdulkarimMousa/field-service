@@ -31,6 +31,8 @@ class SaleOrder(models.Model):
                     _logger.exception(
                         "Customer notification failed for sale.order %s", order.id
                     )
+                if vals["state"] == "sale" and not order.fsm_order_ids:
+                    order._field_service_generation()
         return result
 
     def _get_service_type(self):
@@ -49,12 +51,14 @@ class SaleOrder(models.Model):
         self.ensure_one()
         if self._get_service_type() != "installation" or self.state != "sale":
             return False
+        if self.company_id.installation_release_policy == "approval":
+            return True
         if not self.amount_total and not hasattr(
             type(self)._is_paid, "mock_return_value"
         ):
             return False
         return (
-            self.company_id.installation_release_policy == "approval" or self._is_paid()
+            self._is_paid()
         )
 
     def _has_to_be_signed(self):

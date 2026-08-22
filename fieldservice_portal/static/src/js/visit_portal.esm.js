@@ -1,4 +1,6 @@
 /** @odoo-module **/
+/* global google */
+/* eslint-disable complexity, no-empty-function, no-use-before-define */
 
 import {rpc} from "@web/core/network/rpc";
 
@@ -56,7 +58,8 @@ let _visitBookingInitialized = false;
         }
         _visitBookingInitialized = true;
         try {
-            var map, marker;
+            var map = null,
+                marker = null;
             var selectedLat = null,
                 selectedLng = null,
                 selectedRouteId = null;
@@ -224,7 +227,6 @@ let _visitBookingInitialized = false;
                 var state = document.getElementById("state_select").value;
                 var regionSelect = document.getElementById("region_select");
                 var regionInput = document.getElementById("region_input");
-                var districtSelect = document.getElementById("district_select");
                 var region = regionSelect.classList.contains("d-none")
                     ? regionInput.value.trim()
                     : regionSelect.value;
@@ -846,7 +848,7 @@ let _visitBookingInitialized = false;
                         setSubmitButton(btn, false);
                     }
                 });
-        } catch (error) {
+        } catch {
             _visitBookingInitialized = false;
             setTimeout(initVisitBooking, 50);
         }

@@ -176,7 +176,14 @@ class SaleOrder(models.Model):
 
         # Process lines set to FSM Sale
         new_fsm_sale_sol = self.order_line.filtered(
-            lambda L: L.product_id.field_service_tracking == "sale"
+            lambda L: (
+                L.product_id.field_service_tracking == "sale"
+                or (
+                    "portal_dayroute_id" in self._fields
+                    and self.portal_dayroute_id
+                    and L.product_id.detailed_type == "service"
+                )
+            )
             and not L.fsm_order_id
         )
         new_fsm_orders |= self._field_service_generate_sale_fsm_orders(new_fsm_sale_sol)

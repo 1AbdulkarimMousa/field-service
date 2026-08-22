@@ -49,7 +49,9 @@ class SaleOrder(models.Model):
         self.ensure_one()
         if self._get_service_type() != "installation" or self.state != "sale":
             return False
-        if not self.amount_total and not hasattr(self._is_paid, "mock_return_value"):
+        if not self.amount_total and not hasattr(
+            type(self)._is_paid, "mock_return_value"
+        ):
             return False
         return (
             self.company_id.installation_release_policy == "approval" or self._is_paid()
@@ -230,8 +232,8 @@ class SaleOrder(models.Model):
                 )
         return super()._field_service_generation()
 
-    def _action_confirm(self):
-        result = super()._action_confirm()
+    def action_confirm(self):
+        result = super().action_confirm()
         self._field_service_generation()
         return result
 

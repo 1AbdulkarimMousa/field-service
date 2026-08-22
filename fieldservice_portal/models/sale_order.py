@@ -190,6 +190,7 @@ class SaleOrder(models.Model):
         )
 
     def _prepare_fsm_values(self, **kwargs):
+        kwargs.setdefault("service_type", self._get_service_type())
         values = super()._prepare_fsm_values(**kwargs)
         if self.portal_dayroute_id:
             dayroute = self.portal_dayroute_id

@@ -73,10 +73,6 @@ class ResPartner(models.Model):
 
     def write(self, vals):
         values = self._normalize_territory_values(vals)
-        if "country_id" in values and "state_id" not in values:
-            values.update(state_id=False, region_id=False, district_id=False)
-        elif "state_id" in values and "region_id" not in values:
-            values.update(region_id=False, district_id=False)
         return super().write(values)
 
     @api.constrains("district_id", "region_id", "state_id", "country_id")
@@ -92,8 +88,4 @@ class ResPartner(models.Model):
             if partner.region_id and partner.region_id.state_id != partner.state_id:
                 raise ValidationError(
                     self.env._("The region must belong to the selected state.")
-                )
-            if partner.state_id and partner.state_id.country_id != partner.country_id:
-                raise ValidationError(
-                    self.env._("The state must belong to the selected country.")
                 )

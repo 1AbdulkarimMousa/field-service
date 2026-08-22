@@ -54,6 +54,10 @@ class FSMOrder(models.Model):
     def _get_route_id_from_vals(self, vals):
         if vals.get("fsm_route_id"):
             return vals["fsm_route_id"]
+        if vals.get("dayroute_id"):
+            return (
+                self.env["fsm.route.dayroute"].browse(vals["dayroute_id"]).route_id.id
+            )
         location_id = vals.get("location_id") or self.location_id.id
         if location_id:
             return self.env["fsm.location"].browse(location_id).fsm_route_id.id

@@ -32,7 +32,11 @@ class SaleOrder(models.Model):
                     _logger.exception(
                         "Customer notification failed for sale.order %s", order.id
                     )
-                if order.portal_dayroute_id and not order.fsm_order_ids:
+                if (
+                    order._get_service_type() == "survey"
+                    and order.fsm_location_id
+                    and not order.fsm_order_ids
+                ):
                     lines = order.order_line.filtered(
                         lambda line: line.display_type
                         not in ("line_section", "line_note")
@@ -256,7 +260,7 @@ class SaleOrder(models.Model):
     def _action_confirm(self):
         result = super()._action_confirm()
         for order in self:
-            if not order.portal_dayroute_id:
+            if order._get_service_type() != "survey" or not order.fsm_location_id:
                 continue
             if not order.fsm_order_ids:
                 lines = order.order_line.filtered(

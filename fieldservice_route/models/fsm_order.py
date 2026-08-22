@@ -285,9 +285,6 @@ class FSMOrder(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if vals.get("dayroute_id") and not vals.get("fsm_route_id"):
-                dayroute = self.env["fsm.route.dayroute"].browse(vals["dayroute_id"])
-                vals["fsm_route_id"] = dayroute.route_id.id
             if not vals.get("fsm_route_id") and vals.get("location_id"):
                 location = self.env["fsm.location"].browse(vals["location_id"])
                 vals.update({"fsm_route_id": location.fsm_route_id.id})

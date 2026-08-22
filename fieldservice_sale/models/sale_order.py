@@ -249,13 +249,22 @@ class SaleOrder(models.Model):
     def _action_confirm(self):
         """On SO confirmation, some lines generate field service orders."""
         result = super()._action_confirm()
-        if any(
-            sol.product_id.field_service_tracking != "no"
-            for sol in self.order_line.filtered(
-                lambda x: x.display_type not in ("line_section", "line_note")
+        if (
+            any(
+                sol.product_id.field_service_tracking != "no"
+                for sol in self.order_line.filtered(
+                    lambda x: x.display_type not in ("line_section", "line_note")
+                )
             )
-        ) or (
-            "portal_dayroute_id" in self._fields and self.filtered("portal_dayroute_id")
+            or (
+                "portal_dayroute_id" in self._fields
+                and self.filtered("portal_dayroute_id")
+            )
+            or any(
+                "service_type" in order.sale_order_template_id._fields
+                and order.sale_order_template_id.service_type == "survey"
+                for order in self
+            )
         ):
             if not self.fsm_location_id:
                 raise ValidationError(self.env._("FSM Location must be set"))

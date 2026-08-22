@@ -3,8 +3,9 @@
 from collections import OrderedDict
 from operator import itemgetter
 
-from odoo import Domain, _, http
+from odoo import _, http
 from odoo.exceptions import AccessError
+from odoo.fields import Domain
 from odoo.http import request
 from odoo.tools import groupby as groupbyelem
 

@@ -1,3 +1,5 @@
+# pylint: disable=prefer-env-translation
+
 from collections import OrderedDict
 from operator import itemgetter
 

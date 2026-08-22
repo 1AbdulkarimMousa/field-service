@@ -27,7 +27,6 @@ class ResCompany(models.Model):
             ("phone", "Phone Verification"),
             ("payment", "Online Payment"),
         ],
-        string="Visit Confirmation Policy",
         required=True,
         default="phone",
         help=(
@@ -41,7 +40,6 @@ class ResCompany(models.Model):
             ("approval", "Approval"),
             ("payment", "Online Payment"),
         ],
-        string="Installation Release Policy",
         required=True,
         default="payment",
         help=(

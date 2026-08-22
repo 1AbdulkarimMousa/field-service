@@ -1,3 +1,5 @@
+# pylint: disable=prefer-env-translation
+
 from odoo import _, fields
 from odoo.exceptions import UserError
 from odoo.http import request

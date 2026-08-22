@@ -1,5 +1,7 @@
 import logging
 
+# pylint: disable=prefer-env-translation
+
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 from odoo.tools import format_amount
@@ -17,7 +19,6 @@ class SaleOrder(models.Model):
         help="Appointment selected in the customer portal before payment.",
     )
     portal_service_description = fields.Text(
-        string="Portal Service Description",
         copy=False,
     )
 

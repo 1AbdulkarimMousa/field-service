@@ -1,3 +1,5 @@
+# pylint: disable=prefer-env-translation
+
 import logging
 from datetime import timedelta
 

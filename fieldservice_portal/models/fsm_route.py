@@ -11,6 +11,5 @@ class FSMRoute(models.Model):
             ("maintenance", "Maintenance"),
             ("installation", "Installation"),
         ],
-        string="Route Type",
         default="visit",
     )

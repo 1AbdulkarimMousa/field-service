@@ -265,6 +265,7 @@ class SaleOrder(models.Model):
                 and order.sale_order_template_id.service_type == "survey"
                 for order in self
             )
+            or any(order.fsm_location_id for order in self)
         ):
             if not self.fsm_location_id:
                 raise ValidationError(self.env._("FSM Location must be set"))

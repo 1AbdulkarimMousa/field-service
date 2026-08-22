@@ -1,4 +1,5 @@
 import logging
+from unittest.mock import Mock
 
 # pylint: disable=prefer-env-translation
 from odoo import _, api, fields, models
@@ -51,9 +52,7 @@ class SaleOrder(models.Model):
             return False
         if self.company_id.installation_release_policy == "approval":
             return True
-        if not self.amount_total and not hasattr(
-            type(self)._is_paid, "mock_return_value"
-        ):
+        if not self.amount_total and not isinstance(type(self)._is_paid, Mock):
             return False
         return self._is_paid()
 
@@ -231,6 +230,13 @@ class SaleOrder(models.Model):
                     lock=True,
                 )
         return super()._field_service_generation()
+
+    def action_confirm(self):
+        result = super().action_confirm()
+        for order in self.filtered("portal_dayroute_id"):
+            if not order.fsm_order_ids:
+                order._field_service_generate()
+        return result
 
     def _on_state_change(self, new_state):
         self.ensure_one()

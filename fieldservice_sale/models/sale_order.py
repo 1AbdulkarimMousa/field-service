@@ -246,6 +246,8 @@ class SaleOrder(models.Model):
             for sol in self.order_line.filtered(
                 lambda x: x.display_type not in ("line_section", "line_note")
             )
+        ) or (
+            "portal_dayroute_id" in self._fields and self.filtered("portal_dayroute_id")
         ):
             if not self.fsm_location_id:
                 raise ValidationError(self.env._("FSM Location must be set"))

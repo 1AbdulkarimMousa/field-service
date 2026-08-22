@@ -181,7 +181,7 @@ class SaleOrder(models.Model):
                 or (
                     "portal_dayroute_id" in self._fields
                     and self.portal_dayroute_id
-                    and L.product_id.detailed_type == "service"
+                    and L.product_id.type == "service"
                 )
             )
             and not L.fsm_order_id

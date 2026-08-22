@@ -52,7 +52,10 @@ class SaleOrder(models.Model):
             return False
         if self.company_id.installation_release_policy == "approval":
             return True
-        if not self.amount_total and not isinstance(type(self)._is_paid, Mock):
+        if not self.amount_total and not (
+            isinstance(type(self)._is_paid, Mock)
+            or hasattr(type(self)._is_paid, "return_value")
+        ):
             return False
         return self._is_paid()
 

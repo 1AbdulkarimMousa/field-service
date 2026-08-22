@@ -23,5 +23,7 @@ class FSMStage(models.Model):
     portal_visible = fields.Boolean(
         string="Visible in Portal",
         default=True,
-        help="Enable to display field service orders based on their stage in the portal.",
+        help=(
+            "Enable to display field service orders based on their stage in the portal."
+        ),
     )

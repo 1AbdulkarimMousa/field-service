@@ -4,10 +4,10 @@
 // @ Valutoria L.T.D. <abdulkarim@valutoria.com>
 // License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
-import { loadJS } from "@web/core/assets";
-import { rpc } from "@web/core/network/rpc";
+import {loadJS} from "@web/core/assets";
+import {rpc} from "@web/core/network/rpc";
 
-let mapsPromise;
+let mapsPromise = null;
 
 async function loadGoogleMaps() {
     if (!mapsPromise) {
@@ -30,13 +30,17 @@ async function loadGoogleMaps() {
 }
 
 function readPoints() {
-    return [...document.querySelectorAll(".o_field_one2many[name='polygon_ids'] .o_data_row")]
+    return [
+        ...document.querySelectorAll(
+            ".o_field_one2many[name='polygon_ids'] .o_data_row"
+        ),
+    ]
         .map((row) => [...row.querySelectorAll(".o_data_cell")])
         .map((cells) => ({
             lat: Number.parseFloat(cells[1]?.textContent),
             lng: Number.parseFloat(cells[2]?.textContent),
         }))
-        .filter(({ lat, lng }) => Number.isFinite(lat) && Number.isFinite(lng));
+        .filter(({lat, lng}) => Number.isFinite(lat) && Number.isFinite(lng));
 }
 
 async function initialize() {
@@ -48,7 +52,7 @@ async function initialize() {
     const status = document.getElementById("polygon_status");
     const maps = await loadGoogleMaps();
     const points = readPoints();
-    const center = points[0] || { lat: 24.7136, lng: 46.6753 };
+    const center = points[0] || {lat: 24.7136, lng: 46.6753};
     const map = new maps.Map(container, {
         center,
         zoom: points.length ? 14 : 11,
@@ -90,17 +94,23 @@ async function initialize() {
         if (!districtId) {
             return;
         }
-        const points = polygon.getPath().getArray().map((point, index) => ({
-            sequence: (index + 1) * 10,
-            lat: point.lat(),
-            lng: point.lng(),
-        }));
+        const points = polygon
+            .getPath()
+            .getArray()
+            .map((point, index) => ({
+                sequence: (index + 1) * 10,
+                lat: point.lat(),
+                lng: point.lng(),
+            }));
         await rpc("/web/dataset/call_kw", {
             model: "res.district",
             method: "write",
-            args: [[districtId], {
-                polygon_ids: [[5, 0, 0], ...points.map((point) => [0, 0, point])],
-            }],
+            args: [
+                [districtId],
+                {
+                    polygon_ids: [[5, 0, 0], ...points.map((point) => [0, 0, point])],
+                },
+            ],
             kwargs: {},
         });
         window.location.reload();
@@ -109,7 +119,7 @@ async function initialize() {
 }
 
 const observer = new MutationObserver(initialize);
-observer.observe(document.body, { childList: true, subtree: true });
+observer.observe(document.body, {childList: true, subtree: true});
 initialize().catch((error) => {
     const status = document.getElementById("polygon_status");
     if (status) {

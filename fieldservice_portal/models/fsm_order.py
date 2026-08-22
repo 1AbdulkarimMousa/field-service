@@ -48,7 +48,9 @@ class FSMOrder(models.Model):
 
     def _notify_started(self, partner, notifier):
         self.ensure_one()
-        person_name = self.person_id.name if self.person_id else self.env._("Technician")
+        person_name = (
+            self.person_id.name if self.person_id else self.env._("Technician")
+        )
         message = self.env._(
             "%(person)s is on the way.\nWork order: %(order)s",
             person=person_name,
@@ -66,12 +68,16 @@ class FSMOrder(models.Model):
         elif service_type in ("maintenance", "repair"):
             self._notify_service_complete(partner, notifier)
         else:
-            notifier.notify_customer(partner, self.env._("The work has been completed."))
+            notifier.notify_customer(
+                partner, self.env._("The work has been completed.")
+            )
 
     def _notify_survey_complete(self, partner, notifier):
         notifier.notify_customer(
             partner,
-            self.env._("The site survey is complete. Your quotation will follow shortly."),
+            self.env._(
+                "The site survey is complete. Your quotation will follow shortly."
+            ),
             email_template_xmlid="fieldservice_portal.email_inspection_completed",
             email_values={"portal_url": f"{notifier._get_base_url()}/my/orders"},
         )
@@ -91,7 +97,9 @@ class FSMOrder(models.Model):
     def _notify_service_complete(self, partner, notifier):
         notifier.notify_customer(
             partner,
-            self.env._("The service is complete and the installed equipment is operational."),
+            self.env._(
+                "The service is complete and the installed equipment is operational."
+            ),
             email_template_xmlid="fieldservice_portal.email_maintenance_completed",
             email_values={"portal_url": f"{notifier._get_base_url()}/my/requests"},
         )

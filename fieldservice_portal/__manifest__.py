@@ -45,7 +45,7 @@
         "web.assets_frontend": [
             "fieldservice_portal/static/src/css/portal.css",
             "fieldservice_portal/static/src/scss/visit_portal.scss",
-            "fieldservice_portal/static/src/js/visit_portal.js",
+            "fieldservice_portal/static/src/js/visit_portal.esm.js",
         ],
     },
     "installable": True,

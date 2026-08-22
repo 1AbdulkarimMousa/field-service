@@ -61,9 +61,7 @@ class Lead(models.Model):
         return {
             "domain": {
                 "district_id": (
-                    [("region_id", "=", self.region_id.id)]
-                    if self.region_id
-                    else []
+                    [("region_id", "=", self.region_id.id)] if self.region_id else []
                 )
             }
         }
@@ -73,9 +71,7 @@ class Lead(models.Model):
         return {
             "domain": {
                 "region_id": (
-                    [("state_id", "=", self.state_id.id)]
-                    if self.state_id
-                    else []
+                    [("state_id", "=", self.state_id.id)] if self.state_id else []
                 )
             }
         }
@@ -85,9 +81,7 @@ class Lead(models.Model):
         return {
             "domain": {
                 "state_id": (
-                    [("country_id", "=", self.country_id.id)]
-                    if self.country_id
-                    else []
+                    [("country_id", "=", self.country_id.id)] if self.country_id else []
                 )
             }
         }
@@ -101,7 +95,12 @@ class Lead(models.Model):
 
     def write(self, vals):
         res = super().write(vals)
-        if {"partner_latitude", "partner_longitude", "district_id", "fsm_location_id"} & set(vals):
+        if {
+            "partner_latitude",
+            "partner_longitude",
+            "district_id",
+            "fsm_location_id",
+        } & set(vals):
             for rec in self:
                 if rec.fsm_location_id and rec.fsm_location_id.partner_id:
                     loc_vals = {}

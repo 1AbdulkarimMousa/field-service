@@ -8,7 +8,7 @@ def migrate(env, version):
         [
             (
                 "fsm.order",
-                None,  # None because the field is not stored, so no DB column exists.
+                None,  # The field is not stored, so no DB column exists.
                 "size_uom_category",
                 "size_relative_uom_id",
             ),

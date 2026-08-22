@@ -1,6 +1,5 @@
 from odoo import fields, models
 
-
 SERVICE_TYPES = [
     ("survey", "Site Survey"),
     ("installation", "Installation"),

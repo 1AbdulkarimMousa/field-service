@@ -1,10 +1,9 @@
 from collections import OrderedDict
 from operator import itemgetter
 
-from odoo import _, http
+from odoo import Domain, _, http
 from odoo.exceptions import AccessError
 from odoo.http import request
-from odoo.osv.expression import OR
 from odoo.tools import groupby as groupbyelem
 
 from odoo.addons.portal.controllers.portal import CustomerPortal
@@ -15,9 +14,8 @@ class CustomerPortal(CustomerPortal):
     def _prepare_home_portal_values(self, counters):
         values = super()._prepare_home_portal_values(counters)
         if "fsm_order_count" in counters:
-            fsm_order_count = (
-                request.env["fsm.order"]
-                .search_count(self._prepare_fsm_orders_domain())
+            fsm_order_count = request.env["fsm.order"].search_count(
+                self._prepare_fsm_orders_domain()
             )
             values["fsm_order_count"] = fsm_order_count
         return values
@@ -110,16 +108,14 @@ class CustomerPortal(CustomerPortal):
         )
 
         if search and search_in:
-            search_domain = []
+            search_domain = Domain.FALSE
             for search_property in [
                 k
                 for (k, v) in searchbar_inputs.items()
                 if search_in in (v["input"], "all") and k != "all"
             ]:
-                search_domain = OR(
-                    [search_domain, [(search_property, "ilike", search)]]
-                )
-            domain += search_domain
+                search_domain |= Domain([(search_property, "ilike", search)])
+            domain = Domain(domain) & search_domain
 
         # search filters (by stage)
         searchbar_filters = OrderedDict(

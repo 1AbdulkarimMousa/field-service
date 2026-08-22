@@ -14,7 +14,12 @@ class FieldServiceNotification(models.AbstractModel):
 
     @api.model
     def _get_base_url(self):
-        return self.env["ir.config_parameter"].sudo().get_param("web.base.url", "").rstrip("/")
+        return (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("web.base.url", "")
+            .rstrip("/")
+        )
 
     @api.model
     def _send_external_message(self, partner, message):
@@ -49,9 +54,11 @@ class FieldServiceNotification(models.AbstractModel):
 
         if partner.email and (email_template_xmlid or (email_subject and email_body)):
             try:
-                template = self.env.ref(
-                    email_template_xmlid, raise_if_not_found=False
-                ) if email_template_xmlid else False
+                template = (
+                    self.env.ref(email_template_xmlid, raise_if_not_found=False)
+                    if email_template_xmlid
+                    else False
+                )
                 if email_template_xmlid and template:
                     context = {"default_email_to": partner.email}
                     if email_values:
@@ -90,16 +97,20 @@ class FieldServiceNotification(models.AbstractModel):
     @api.model
     def _get_available_slots_text(self, route_type, limit=5):
         today = fields.Date.context_today(self)
-        dayroutes = self.env["fsm.route.dayroute"].sudo().search(
-            [
-                ("date", ">=", today),
-                ("date", "<=", today + timedelta(weeks=4)),
-                ("order_remaining", ">", 0),
-                ("route_id.route_type", "=", route_type),
-                ("team_id.company_id", "=", self.env.company.id),
-            ],
-            order="date asc",
-            limit=limit,
+        dayroutes = (
+            self.env["fsm.route.dayroute"]
+            .sudo()
+            .search(
+                [
+                    ("date", ">=", today),
+                    ("date", "<=", today + timedelta(weeks=4)),
+                    ("order_remaining", ">", 0),
+                    ("route_id.route_type", "=", route_type),
+                    ("team_id.company_id", "=", self.env.company.id),
+                ],
+                order="date asc",
+                limit=limit,
+            )
         )
         return "\n".join(
             self.env._(

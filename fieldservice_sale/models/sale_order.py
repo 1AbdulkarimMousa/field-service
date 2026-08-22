@@ -130,13 +130,16 @@ class SaleOrder(models.Model):
             )
             if not fsm_by_sale:
                 templates = new_fsm_sol.product_id.fsm_order_template_id
-                service_types = set(
-                    new_fsm_sol.mapped("product_id.service_type")
-                ) - {False, "other"}
+                service_types = set(new_fsm_sol.mapped("product_id.service_type")) - {
+                    False,
+                    "other",
+                }
                 vals = self._prepare_fsm_values(
                     so_id=self.id,
                     template_ids=templates.ids,
-                    service_type=service_types.pop() if len(service_types) == 1 else "other",
+                    service_type=service_types.pop()
+                    if len(service_types) == 1
+                    else "other",
                 )
                 fsm_by_sale = self.env["fsm.order"].sudo().create(vals)
                 new_fsm_orders |= fsm_by_sale

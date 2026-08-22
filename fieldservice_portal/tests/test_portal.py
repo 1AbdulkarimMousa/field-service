@@ -134,8 +134,7 @@ class TestUsersHttp(HttpCase, TransactionCase):
         self.authenticate(login, login)
         completed_stage = self.env.ref("fieldservice.fsm_stage_completed")
         response = self.url_open(
-            "/my/fsm_orders?groupby=none&filterby=stage_%d&page=1&search_in=&search="
-            % completed_stage.id,
+            f"/my/fsm_orders?groupby=none&filterby=stage_{completed_stage.id}&page=1&search_in=&search=",
             data={
                 "validation": login,
                 "password": login,
@@ -152,8 +151,7 @@ class TestUsersHttp(HttpCase, TransactionCase):
         self.authenticate(login, login)
         stage_id = self.env.ref("fieldservice.fsm_stage_new").id
         response = self.url_open(
-            "/my/fsm_orders?groupby=stage_id&filterby=stage_%d&sortby=location"
-            % stage_id,
+            f"/my/fsm_orders?groupby=stage_id&filterby=stage_{stage_id}&sortby=location",
             data={
                 "validation": login,
                 "password": login,

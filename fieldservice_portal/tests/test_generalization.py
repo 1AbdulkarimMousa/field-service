@@ -57,9 +57,7 @@ class TestFieldServiceGeneralization(TransactionCase):
 
     def test_route_type_uses_english_translation_sources(self):
         selection = dict(
-            self.env["fsm.route"]._fields["route_type"]._description_selection(
-                self.env
-            )
+            self.env["fsm.route"]._fields["route_type"]._description_selection(self.env)
         )
         self.assertEqual(selection["visit"], "Site Visit")
         self.assertEqual(selection["maintenance"], "Maintenance")
@@ -82,8 +80,10 @@ class TestFieldServiceGeneralization(TransactionCase):
 
     def test_portal_configuration_defaults_and_settings_fields(self):
         company = self.env["res.company"].create({"name": "Portal Policy Company"})
-        settings = self.env["res.config.settings"].with_company(company).create(
-            {"company_id": company.id}
+        settings = (
+            self.env["res.config.settings"]
+            .with_company(company)
+            .create({"company_id": company.id})
         )
 
         self.assertEqual(company.visit_confirmation_policy, "phone")
@@ -137,11 +137,15 @@ class TestFieldServiceGeneralization(TransactionCase):
             }
         )
 
-        settings_a = self.env["res.config.settings"].with_company(company_a).create(
-            {"company_id": company_a.id}
+        settings_a = (
+            self.env["res.config.settings"]
+            .with_company(company_a)
+            .create({"company_id": company_a.id})
         )
-        settings_b = self.env["res.config.settings"].with_company(company_b).create(
-            {"company_id": company_b.id}
+        settings_b = (
+            self.env["res.config.settings"]
+            .with_company(company_b)
+            .create({"company_id": company_b.id})
         )
         self.assertEqual(settings_a.visit_crm_team_id, team_a)
         self.assertEqual(settings_b.visit_crm_team_id, team_b)

@@ -254,8 +254,7 @@ class TestPortalBooking(TransactionCase):
     def test_expired_draft_quotation_releases_capacity(self):
         self._set_dayroute_capacity(1)
         reserved_sale = self._create_sale(
-            validity_date=fields.Date.context_today(self.env.user)
-            - timedelta(days=1)
+            validity_date=fields.Date.context_today(self.env.user) - timedelta(days=1)
         )
         confirming_sale = self._create_sale()
 

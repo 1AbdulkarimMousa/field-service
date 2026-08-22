@@ -1,10 +1,9 @@
 import unittest
 from pathlib import Path
 
-
 MODULE_ROOT = Path(__file__).resolve().parents[1]
 CONTROLLER_ROOT = MODULE_ROOT / "controllers"
-VISIT_SCRIPT = MODULE_ROOT / "static" / "src" / "js" / "visit_portal.js"
+VISIT_SCRIPT = MODULE_ROOT / "static" / "src" / "js" / "visit_portal.esm.js"
 VISIT_STYLES = MODULE_ROOT / "static" / "src" / "scss" / "visit_portal.scss"
 BOOKING_TEMPLATES = (
     MODULE_ROOT / "views" / "visit_portal_template.xml",
@@ -33,7 +32,8 @@ class TestFrontendTemplateContracts(unittest.TestCase):
         source = (MODULE_ROOT / "views" / "res_config_settings.xml").read_text()
 
         self.assertIn(
-            '<field name="inherit_id" ref="fieldservice.res_config_settings_view_form"/>',
+            '<field name="inherit_id" '
+            'ref="fieldservice.res_config_settings_view_form"/>',
             source,
         )
         self.assertIn(
@@ -51,7 +51,7 @@ class TestFrontendTemplateContracts(unittest.TestCase):
         self.assertTrue(VISIT_SCRIPT.exists())
         self.assertTrue(VISIT_STYLES.exists())
         self.assertIn(
-            '"fieldservice_portal/static/src/js/visit_portal.js"', manifest
+            '"fieldservice_portal/static/src/js/visit_portal.esm.js"', manifest
         )
         self.assertIn(
             '"fieldservice_portal/static/src/scss/visit_portal.scss"', manifest
@@ -59,9 +59,7 @@ class TestFrontendTemplateContracts(unittest.TestCase):
         self.assertIn(
             'import { rpc } from "@web/core/network/rpc";', VISIT_SCRIPT.read_text()
         )
-        self.assertIn(
-            'if (!document.getElementById("vbf"))', VISIT_SCRIPT.read_text()
-        )
+        self.assertIn('if (!document.getElementById("vbf"))', VISIT_SCRIPT.read_text())
 
     def test_booking_templates_have_no_swiper_dependency(self):
         for template in BOOKING_TEMPLATES:
@@ -90,7 +88,9 @@ class TestFrontendTemplateContracts(unittest.TestCase):
             source = booking_source(template)
             with self.subTest(template=template.name):
                 if template == BOOKING_TEMPLATES[0] and VISIT_SCRIPT.exists():
-                    self.assertIn('import { rpc } from "@web/core/network/rpc";', source)
+                    self.assertIn(
+                        'import { rpc } from "@web/core/network/rpc";', source
+                    )
                 else:
                     self.assertIn(
                         'odoo.loader.modules.get("@web/core/network/rpc")', source
@@ -141,7 +141,7 @@ class TestFrontendTemplateContracts(unittest.TestCase):
         )
         sentinels = ("visitDistrictPrefix", "reqSubmitError", "instSubmitError")
         for template, initializer, sentinel in zip(
-            BOOKING_TEMPLATES, initializers, sentinels
+            BOOKING_TEMPLATES, initializers, sentinels, strict=False
         ):
             source = booking_source(template)
             with self.subTest(template=template.name):
@@ -160,7 +160,7 @@ class TestFrontendTemplateContracts(unittest.TestCase):
 
     def test_booking_errors_render_inline_without_native_alerts(self):
         error_ids = ("visitInlineError", "reqInlineError", "instInlineError")
-        for template, error_id in zip(BOOKING_TEMPLATES, error_ids):
+        for template, error_id in zip(BOOKING_TEMPLATES, error_ids, strict=False):
             source = booking_source(template)
             with self.subTest(template=template.name):
                 self.assertNotIn("alert(", source)
@@ -211,11 +211,9 @@ class TestFrontendTemplateContracts(unittest.TestCase):
 
     def test_region_filter_initializes_district_select(self):
         source = visit_script_source()
-        update_region_options = source.split(
-            "function updateRegionOptions() {", 1
-        )[1].split(
-            "document.getElementById('state_select').addEventListener", 1
-        )[0]
+        update_region_options = source.split("function updateRegionOptions() {", 1)[
+            1
+        ].split("document.getElementById('state_select').addEventListener", 1)[0]
 
         self.assertIn(
             "var districtSelect = document.getElementById('district_select');",
@@ -224,10 +222,13 @@ class TestFrontendTemplateContracts(unittest.TestCase):
 
     def test_visit_address_step_uses_one_compact_note(self):
         source = BOOKING_TEMPLATES[0].read_text()
-        self.assertNotIn("Verify the address details, make any necessary changes", source)
+        self.assertNotIn(
+            "Verify the address details, make any necessary changes", source
+        )
         self.assertNotIn("Enter the full address, including the district", source)
         self.assertIn(
-            "Enter the complete service address so our team can confirm coverage and find your site.",
+            "Enter the complete service address so our team can confirm coverage "
+            "and find your site.",
             source,
         )
 
@@ -250,9 +251,7 @@ class TestFrontendTemplateContracts(unittest.TestCase):
             source = (MODULE_ROOT / "i18n" / catalog_name).read_text()
             for msgid, msgstr in translations.items():
                 with self.subTest(catalog=catalog_name, msgid=msgid):
-                    self.assertIn(
-                        f'msgid "{msgid}"\nmsgstr "{msgstr}"', source
-                    )
+                    self.assertIn(f'msgid "{msgid}"\nmsgstr "{msgstr}"', source)
 
 
 if __name__ == "__main__":

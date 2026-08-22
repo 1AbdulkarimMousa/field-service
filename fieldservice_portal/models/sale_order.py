@@ -50,8 +50,7 @@ class SaleOrder(models.Model):
         if self._get_service_type() != "installation" or self.state != "sale":
             return False
         return (
-            self.company_id.installation_release_policy == "approval"
-            or self._is_paid()
+            self.company_id.installation_release_policy == "approval" or self._is_paid()
         )
 
     def _has_to_be_signed(self):
@@ -268,7 +267,8 @@ class SaleOrder(models.Model):
         )
         portal_url = f"{notifier._get_base_url()}/my/orders/{self.id}"
         message = self.env._(
-            "Your installation quotation is ready.\n%(lines)s\nTotal: %(total)s\n%(url)s",
+            "Your installation quotation is ready.\n"
+            "%(lines)s\nTotal: %(total)s\n%(url)s",
             lines=lines_text,
             total=self._formatted_amount(self.amount_total),
             url=portal_url,
@@ -284,7 +284,8 @@ class SaleOrder(models.Model):
         portal_url = f"{notifier._get_base_url()}/my/installation/{self.id}"
         slots = notifier._get_available_slots_text("installation", limit=5)
         message = self.env._(
-            "Payment received (%(amount)s). Choose an installation appointment: %(url)s",
+            "Payment received (%(amount)s). Choose an installation appointment: "
+            "%(url)s",
             amount=self._formatted_amount(self.amount_total),
             url=portal_url,
         )
@@ -313,7 +314,9 @@ class SaleOrder(models.Model):
         notifier.notify_customer(
             partner,
             message,
-            email_subject=self.env._("Installation approved - schedule your appointment"),
+            email_subject=self.env._(
+                "Installation approved - schedule your appointment"
+            ),
             email_body=self.env._(
                 "Your installation quotation has been approved. Choose a suitable "
                 "installation appointment at %(url)s.",
@@ -330,7 +333,8 @@ class SaleOrder(models.Model):
             )
         else:
             message = self.env._(
-                "Your site survey is confirmed after phone verification. Amount: %(amount)s",
+                "Your site survey is confirmed after phone verification. "
+                "Amount: %(amount)s",
                 amount=self._formatted_amount(self.amount_total),
             )
         notifier.notify_customer(
@@ -353,4 +357,8 @@ class SaleOrder(models.Model):
         if self._is_installation_released():
             return f"/my/installation/{self.id}"
         parent = super()
-        return parent._get_portal_return_url() if hasattr(parent, "_get_portal_return_url") else "/my/orders"
+        return (
+            parent._get_portal_return_url()
+            if hasattr(parent, "_get_portal_return_url")
+            else "/my/orders"
+        )

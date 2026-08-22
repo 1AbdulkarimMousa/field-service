@@ -36,9 +36,21 @@ class ResPartner(models.Model):
     @api.model
     def _normalize_territory_values(self, vals):
         values = dict(vals)
-        district = self.env["res.district"].browse(values["district_id"]).exists() if values.get("district_id") else self.env["res.district"]
-        region = self.env["res.region"].browse(values["region_id"]).exists() if values.get("region_id") else self.env["res.region"]
-        state = self.env["res.country.state"].browse(values["state_id"]).exists() if values.get("state_id") else self.env["res.country.state"]
+        district = (
+            self.env["res.district"].browse(values["district_id"]).exists()
+            if values.get("district_id")
+            else self.env["res.district"]
+        )
+        region = (
+            self.env["res.region"].browse(values["region_id"]).exists()
+            if values.get("region_id")
+            else self.env["res.region"]
+        )
+        state = (
+            self.env["res.country.state"].browse(values["state_id"]).exists()
+            if values.get("state_id")
+            else self.env["res.country.state"]
+        )
 
         if district:
             region = district.region_id
@@ -66,9 +78,18 @@ class ResPartner(models.Model):
     @api.constrains("district_id", "region_id", "state_id", "country_id")
     def _check_territory_consistency(self):
         for partner in self:
-            if partner.district_id and partner.district_id.region_id != partner.region_id:
-                raise ValidationError("The district must belong to the selected region.")
+            if (
+                partner.district_id
+                and partner.district_id.region_id != partner.region_id
+            ):
+                raise ValidationError(
+                    self.env._("The district must belong to the selected region.")
+                )
             if partner.region_id and partner.region_id.state_id != partner.state_id:
-                raise ValidationError("The region must belong to the selected state.")
+                raise ValidationError(
+                    self.env._("The region must belong to the selected state.")
+                )
             if partner.state_id and partner.state_id.country_id != partner.country_id:
-                raise ValidationError("The state must belong to the selected country.")
+                raise ValidationError(
+                    self.env._("The state must belong to the selected country.")
+                )

@@ -49,9 +49,9 @@ class SaleOrder(models.Model):
         self.ensure_one()
         if self._get_service_type() != "installation" or self.state != "sale":
             return False
-        return (
-            self.company_id.installation_release_policy == "approval" or self._is_paid()
-        )
+        if self.company_id.installation_release_policy == "approval":
+            return True
+        return bool(self.amount_total) and self._is_paid()
 
     def _has_to_be_signed(self):
         self.ensure_one()
@@ -227,6 +227,13 @@ class SaleOrder(models.Model):
                     lock=True,
                 )
         return super()._field_service_generation()
+
+    def _action_confirm(self):
+        result = super()._action_confirm()
+        self.filtered(
+            lambda order: order.state == "sale" and not order.fsm_order_ids
+        )._field_service_generation()
+        return result
 
     def _on_state_change(self, new_state):
         self.ensure_one()

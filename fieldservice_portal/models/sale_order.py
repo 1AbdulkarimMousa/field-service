@@ -234,6 +234,11 @@ class SaleOrder(models.Model):
                 )
         return super()._field_service_generation()
 
+    def action_confirm(self):
+        result = super().action_confirm()
+        self._field_service_generation()
+        return result
+
     def _on_state_change(self, new_state):
         self.ensure_one()
         if not self.partner_id:

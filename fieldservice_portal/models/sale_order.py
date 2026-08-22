@@ -236,7 +236,9 @@ class SaleOrder(models.Model):
 
     def _action_confirm(self):
         result = super()._action_confirm()
-        for order in self.filtered("portal_dayroute_id"):
+        for order in self:
+            if not order.portal_dayroute_id:
+                continue
             if not order.fsm_order_ids:
                 lines = order.order_line.filtered(
                     lambda line: line.display_type not in ("line_section", "line_note")

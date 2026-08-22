@@ -7,4 +7,5 @@ from . import (
     res_branch,
     res_territory,
     res_country,
+    res_partner,
 )

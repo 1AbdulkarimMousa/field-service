@@ -324,6 +324,8 @@ class FSMOrder(models.Model):
         return "scheduled_date_start" in vals and not vals.get("scheduled_date_start")
 
     def _order_route_for_dayroute_write(self, write_vals):
+        if write_vals.get("fsm_route_id"):
+            return self.env["fsm.route"].browse(write_vals["fsm_route_id"])
         location_id = write_vals.get("location_id") or self.location_id.id
         if location_id:
             return self.env["fsm.location"].browse(location_id).fsm_route_id

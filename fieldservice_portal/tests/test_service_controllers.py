@@ -858,9 +858,7 @@ class TestServiceControllers(TransactionCaseWithUserPortal):
         )
         self._install_equipment(location, "Route List Controller Equipment")
         routeless_location = self._create_location("Routeless Controller Site")
-        self._install_equipment(
-            routeless_location, "Routeless Controller Equipment"
-        )
+        self._install_equipment(routeless_location, "Routeless Controller Equipment")
         other_route = self.env["fsm.route"].create(
             {
                 "name": "Other Controller Maintenance Route",

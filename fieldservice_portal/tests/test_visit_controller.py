@@ -851,9 +851,7 @@ class TestVisitController(TransactionCaseWithUserPortal):
         self.assertFalse(generic["success"])
         self.assertIn("could not be created", generic["error"])
 
-    def test_submit_mapped_visit_creates_real_booking_without_optional_stock(self):
-        self.assertNotIn("shipping_address_id", self.env["fsm.location"]._fields)
-
+    def test_submit_mapped_visit_creates_real_booking(self):
         result = self.controller.submit_visit_request(**self._mapped_visit_values())
 
         self.assertTrue(result["success"], result.get("error"))

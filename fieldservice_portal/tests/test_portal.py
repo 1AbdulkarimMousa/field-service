@@ -1,14 +1,37 @@
 import json
 
 from odoo.http import Request
-from odoo.tests.common import HttpCase, TransactionCase, tagged
+from odoo.tests.common import tagged
 from odoo.tools import mute_logger
+
+from odoo.addons.base.tests.common import HttpCaseWithUserDemo, HttpCaseWithUserPortal
 
 
 @tagged("post_install", "-at_install")
-class TestUsersHttp(HttpCase, TransactionCase):
+class TestUsersHttp(HttpCaseWithUserPortal, HttpCaseWithUserDemo):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.portal_order = cls.env.ref(
+            "fieldservice_portal.fsm_order_demo", raise_if_not_found=False
+        )
+        if not cls.portal_order:
+            location_partner = cls.env["res.partner"].create(
+                {"name": "Portal Test Location"}
+            )
+            portal_location = cls.env["fsm.location"].create(
+                {
+                    "partner_id": location_partner.id,
+                    "owner_id": cls.partner_portal.id,
+                    "contact_id": cls.partner_portal.id,
+                }
+            )
+            cls.portal_order = cls.env["fsm.order"].create(
+                {"name": "Demo Order", "location_id": portal_location.id}
+            )
+
     def test_visit_routes_require_login_and_render_for_portal_user(self):
-        self.logout()
+        self.authenticate(None, None)
         response = self.url_open("/my/visit", allow_redirects=False)
         self.assertIn(response.status_code, (302, 303))
 
@@ -54,7 +77,7 @@ class TestUsersHttp(HttpCase, TransactionCase):
         self.assertEqual(response.status_code, 403)
 
     def test_fsm_order_access(self):
-        order_id = self.env["fsm.order"].search([])[0].id
+        order_id = self.portal_order.id
         login = "portal"
         self.authenticate(login, login)
         response = self.url_open(
@@ -113,7 +136,7 @@ class TestUsersHttp(HttpCase, TransactionCase):
         self.assertEqual(response.status_code, 200)
 
     def test_fsm_order_kw_usage(self):
-        order_id = self.env["fsm.order"].search([])[0].id
+        order_id = self.portal_order.id
         # Trying to access fsm_order url
         # with query parameters
         login = "portal"

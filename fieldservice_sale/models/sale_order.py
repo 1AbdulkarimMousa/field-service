@@ -28,7 +28,7 @@ class SaleOrder(models.Model):
         string="FSM Orders", compute="_compute_fsm_order_ids"
     )
 
-    @api.depends("order_line")
+    @api.depends("order_line", "order_line.fsm_order_id")
     def _compute_fsm_order_ids(self):
         FSMOrder = self.env["fsm.order"]
         for sale in self:

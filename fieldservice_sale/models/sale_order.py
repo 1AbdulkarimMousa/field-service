@@ -179,8 +179,7 @@ class SaleOrder(models.Model):
             lambda L: (
                 L.product_id.field_service_tracking == "sale"
                 or (
-                    "portal_dayroute_id" in self._fields
-                    and self.portal_dayroute_id
+                    self.fsm_location_id
                     and L.product_id.field_service_tracking == "no"
                     and L.product_id.type == "service"
                 )

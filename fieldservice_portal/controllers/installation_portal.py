@@ -59,11 +59,28 @@ class InstallationPortal(CustomerPortal):
     @http.route("/my/installation/routes", type="jsonrpc", auth="user", website=True)
     def installation_get_routes(self, **kw):
         try:
+            sale_order_id = int(kw.get("sale_order_id", 0))
+        except (TypeError, ValueError, OverflowError):
+            return {
+                "success": False,
+                "error": _("Sale order is not ready for installation"),
+            }
+        try:
+            so = self._installation_check_sale_order(sale_order_id, require_ready=True)
+            if not so:
+                return {
+                    "success": False,
+                    "error": _("Sale order is not ready for installation"),
+                }
+            if not so.fsm_location_id.fsm_route_id:
+                return {"success": True, "routes": []}
             today = fields.Date.context_today(request.env.user)
             end_date = today + timedelta(weeks=4)
             result = []
             for dr, remaining in dayroutes_with_available_capacity(
-                "installation", end_date=end_date
+                "installation",
+                end_date=end_date,
+                route_id=so.fsm_location_id.fsm_route_id.id,
             ):
                 result.append(
                     {
@@ -98,6 +115,7 @@ class InstallationPortal(CustomerPortal):
                 }
 
             so.lock_for_update()
+            so.invalidate_recordset()
             so = self._installation_check_sale_order(sale_order_id, require_ready=True)
             if not so:
                 raise PortalBookingError(_("Sale order is not ready for installation"))
@@ -129,10 +147,18 @@ class InstallationPortal(CustomerPortal):
                 needed_capacity=needed_capacity,
                 lock=True,
             )
+            if dayroute.route_id != so.fsm_location_id.fsm_route_id:
+                raise PortalBookingError(
+                    _(
+                        "The selected appointment route does not match this "
+                        "service location."
+                    )
+                )
 
             vals = {
                 "location_id": so.fsm_location_id.id,
                 "dayroute_id": dayroute.id,
+                "fsm_route_id": dayroute.route_id.id,
                 "person_id": dayroute.person_id.id,
                 "team_id": dayroute.team_id.id,
                 "request_early": dayroute.date_start_planned,

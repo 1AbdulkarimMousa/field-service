@@ -152,7 +152,30 @@ class VisitPortal(CustomerPortal):
             visit_team = get_crm_team()
             template = get_sale_template("visit_sale_order_template_id", "survey")
             get_service_type("survey")
-            dayroute = get_dayroute(kw.get("route_id"), "visit", lock=True)
+            service_lines = template.sale_order_template_line_ids.filtered(
+                lambda line: not line.display_type
+            )
+            needed_capacity = len(
+                service_lines.filtered(
+                    lambda line: line.product_id.field_service_tracking == "line"
+                )
+            ) + bool(
+                service_lines.filtered(
+                    lambda line: (
+                        line.product_id.field_service_tracking == "sale"
+                        or (
+                            line.product_id.field_service_tracking == "no"
+                            and line.product_id.type == "service"
+                        )
+                    )
+                )
+            )
+            dayroute = get_dayroute(
+                kw.get("route_id"),
+                "visit",
+                needed_capacity=needed_capacity or 1,
+                lock=True,
+            )
 
             country = request.env.company.country_id.sudo()
             if not country:
@@ -177,7 +200,7 @@ class VisitPortal(CustomerPortal):
             vals = {
                 "name": request.env._("New site survey booking"),
                 "partner_id": partner.id,
-                "phone": partner.phone or partner.mobile or "",
+                "phone": partner.phone or getattr(partner, "mobile", False) or "",
                 "user_id": visit_user.id,
                 "team_id": visit_team.id,
             }
@@ -296,15 +319,13 @@ class VisitPortal(CustomerPortal):
                 "name": partner.name,
                 "type": "other",
                 "parent_id": partner.id,
+                "street": kw["street"],
+                "street2": kw["unit"],
             }
             if latitude is not None:
                 location_partner_vals["partner_latitude"] = latitude
             if longitude is not None:
                 location_partner_vals["partner_longitude"] = longitude
-            if kw.get("street"):
-                location_partner_vals["street"] = kw["street"]
-            if kw.get("unit"):
-                location_partner_vals["street2"] = kw["unit"]
             if kw.get("city"):
                 location_partner_vals["city"] = kw["city"]
             if kw.get("zip"):
@@ -329,7 +350,7 @@ class VisitPortal(CustomerPortal):
                         {
                             "partner_id": location_partner.id,
                             "owner_id": partner.id,
-                            "shipping_address_id": partner.id,
+                            "fsm_route_id": dayroute.route_id.id,
                         }
                     )
                 )

@@ -37,7 +37,12 @@ class RequestsPortal(CustomerPortal):
         equipped_location_ids = (
             request.env["fsm.equipment"]
             .sudo()
-            .search([("location_id", "!=", False)])
+            .search(
+                [
+                    ("location_id", "!=", False),
+                    ("company_id", "=", request.env.company.id),
+                ]
+            )
             .mapped("location_id")
             .ids
         )
@@ -48,22 +53,15 @@ class RequestsPortal(CustomerPortal):
 
     def _requests_check_location(self, location_id):
         """Return location if accessible and has equipment installed, else None."""
-        location = request.env["fsm.location"].sudo().browse(location_id)
-        if not location.exists():
-            return None
-        partner = request.env.user.partner_id.commercial_partner_id
-        allowed_ids = partner.child_ids.ids + [partner.id]
-        if not location.owner_id or location.owner_id.id not in allowed_ids:
-            return None
-        # Block access if no equipment installed on this location
-        has_equipment = (
-            request.env["fsm.equipment"]
+        location = (
+            request.env["fsm.location"]
             .sudo()
-            .search_count([("location_id", "=", location_id)])
+            .search(
+                [("id", "=", location_id), *self._requests_location_domain()],
+                limit=1,
+            )
         )
-        if not has_equipment:
-            return None
-        return location
+        return location or None
 
     # ===== /my/requests — Location picker or redirect =====
     @http.route("/my/requests", type="http", auth="user", website=True)
@@ -106,6 +104,7 @@ class RequestsPortal(CustomerPortal):
                 [
                     ("location_id", "=", location_id),
                     ("stage_id.portal_visible", "=", True),
+                    ("company_id", "=", request.env.company.id),
                 ],
                 order="request_early desc",
                 limit=20,
@@ -141,11 +140,22 @@ class RequestsPortal(CustomerPortal):
     @http.route("/my/requests/routes", type="jsonrpc", auth="user", website=True)
     def requests_get_routes(self, **kw):
         try:
+            location_id = int(kw.get("location_id", 0))
+        except (TypeError, ValueError, OverflowError):
+            return {"success": False, "error": _("Access denied")}
+        try:
+            location = self._requests_check_location(location_id)
+            if not location:
+                return {"success": False, "error": _("Access denied")}
+            if not location.fsm_route_id:
+                return {"success": True, "routes": []}
             today = fields.Date.context_today(request.env.user)
             end_date = today + timedelta(weeks=4)
             result = []
             for dr, remaining in dayroutes_with_available_capacity(
-                "maintenance", end_date=end_date
+                "maintenance",
+                end_date=end_date,
+                route_id=location.fsm_route_id.id,
             ):
                 result.append(
                     {
@@ -183,7 +193,37 @@ class RequestsPortal(CustomerPortal):
                 "requests_sale_order_template_id", "maintenance"
             )
             get_service_type("maintenance")
-            dayroute = get_dayroute(kw.get("route_id"), "maintenance", lock=True)
+            service_lines = template.sale_order_template_line_ids.filtered(
+                lambda line: not line.display_type
+            )
+            needed_capacity = len(
+                service_lines.filtered(
+                    lambda line: line.product_id.field_service_tracking == "line"
+                )
+            ) + bool(
+                service_lines.filtered(
+                    lambda line: (
+                        line.product_id.field_service_tracking == "sale"
+                        or (
+                            line.product_id.field_service_tracking == "no"
+                            and line.product_id.type == "service"
+                        )
+                    )
+                )
+            )
+            dayroute = get_dayroute(
+                kw.get("route_id"),
+                "maintenance",
+                needed_capacity=needed_capacity or 1,
+                lock=True,
+            )
+            if dayroute.route_id != location.fsm_route_id:
+                raise PortalBookingError(
+                    _(
+                        "The selected appointment route does not match this "
+                        "service location."
+                    )
+                )
 
             with request.env.cr.savepoint():
                 so = (

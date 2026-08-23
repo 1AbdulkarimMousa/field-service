@@ -9,7 +9,7 @@ class PortalBookingError(UserError):
     pass
 
 
-def dayroute_domain(route_type=None, end_date=None):
+def dayroute_domain(route_type=None, end_date=None, route_id=None):
     domain = [
         ("date", ">=", fields.Date.context_today(request.env.user)),
         ("order_remaining", ">", 0),
@@ -19,19 +19,29 @@ def dayroute_domain(route_type=None, end_date=None):
         domain.append(("route_id.route_type", "=", route_type))
     if end_date:
         domain.append(("date", "<=", end_date))
+    if route_id is not None:
+        domain.append(("route_id", "=", route_id))
     return domain
 
 
-def dayroutes_with_available_capacity(route_type=None, end_date=None):
+def dayroute_available_capacity(dayroute):
+    return (
+        request.env["sale.order"].sudo()._portal_dayroute_available_capacity(dayroute)
+    )
+
+
+def dayroutes_with_available_capacity(route_type=None, end_date=None, route_id=None):
     dayroutes = (
         request.env["fsm.route.dayroute"]
         .sudo()
-        .search(dayroute_domain(route_type, end_date=end_date), order="date asc")
+        .search(
+            dayroute_domain(route_type, end_date=end_date, route_id=route_id),
+            order="date asc",
+        )
     )
-    SaleOrder = request.env["sale.order"].sudo()
     available_dayroutes = []
     for dayroute in dayroutes:
-        available = SaleOrder._portal_dayroute_available_capacity(dayroute)
+        available = dayroute_available_capacity(dayroute)
         if available > 0:
             available_dayroutes.append((dayroute, available))
     return available_dayroutes
@@ -60,9 +70,7 @@ def get_dayroute(dayroute_id, route_type, needed_capacity=1, lock=False):
         or dayroute.team_id.company_id != request.env.company
     ):
         raise PortalBookingError(_("The selected appointment is no longer available."))
-    available_capacity = (
-        request.env["sale.order"].sudo()._portal_dayroute_available_capacity(dayroute)
-    )
+    available_capacity = dayroute_available_capacity(dayroute)
     if available_capacity < needed_capacity:
         raise PortalBookingError(
             _("The selected appointment has no remaining capacity.")

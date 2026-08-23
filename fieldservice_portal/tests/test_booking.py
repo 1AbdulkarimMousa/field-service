@@ -29,6 +29,7 @@ class TestPortalBooking(TransactionCase):
                 "day_ids": [(6, 0, cls.env["fsm.route.day"].search([]).ids)],
             }
         )
+        cls.location.fsm_route_id = cls.route
         cls.dayroute = cls.env["fsm.route.dayroute"].create(
             {
                 "route_id": cls.route.id,

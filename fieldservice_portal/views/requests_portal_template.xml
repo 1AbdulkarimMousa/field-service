@@ -393,7 +393,7 @@
 
                     async function loadRoutes() {
                         try {
-                            var data = await rpc('/my/requests/routes', {});
+                            var data = await rpc('/my/requests/routes', {location_id: locationId});
                             document.getElementById('routeLoading').classList.add('d-none');
                             if (data.success &amp;&amp; data.routes &amp;&amp; data.routes.length) {
                                 renderWeek(data.routes);

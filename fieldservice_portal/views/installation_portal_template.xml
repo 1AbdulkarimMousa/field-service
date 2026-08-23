@@ -184,7 +184,7 @@
 
                     async function loadRoutes() {
                         try {
-                            var data = await rpc('/my/installation/routes', {});
+                            var data = await rpc('/my/installation/routes', {sale_order_id: soId});
                             document.getElementById('routeLoading').classList.add('d-none');
                             if (data.success &amp;&amp; data.routes &amp;&amp; data.routes.length) {
                                 renderWeek(data.routes);

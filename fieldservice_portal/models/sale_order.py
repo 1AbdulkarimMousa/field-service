@@ -131,9 +131,10 @@ class SaleOrder(models.Model):
 
     @api.model
     def _portal_dayroute_reserved_capacity(self, dayroute, exclude_order=None):
-        return self.sudo().search_count(
+        orders = self.sudo().search(
             self._portal_dayroute_reservation_domain(dayroute, exclude_order)
         )
+        return sum(max(order._portal_pending_fsm_count(), 1) for order in orders)
 
     @api.model
     def _portal_dayroute_available_capacity(self, dayroute, exclude_order=None):
@@ -163,6 +164,10 @@ class SaleOrder(models.Model):
             raise ValidationError(
                 _("The selected appointment does not match this service.")
             )
+        if dayroute.route_id != self.fsm_location_id.fsm_route_id:
+            raise ValidationError(
+                _("The selected appointment does not match the service location route.")
+            )
         if dayroute.date < fields.Date.context_today(self):
             raise ValidationError(_("The selected appointment is no longer available."))
         if dayroute.team_id.company_id != self.company_id:
@@ -181,19 +186,29 @@ class SaleOrder(models.Model):
     def _portal_pending_fsm_count(self):
         self.ensure_one()
         pending_lines = self.order_line.filtered(
-            lambda line: line.display_type not in ("line_section", "line_note")
-            and line.product_id.field_service_tracking != "no"
-            and not line.fsm_order_id
+            lambda line: (
+                line.display_type not in ("line_section", "line_note")
+                and not line.fsm_order_id
+            )
+        )
+        pending_sale_lines = pending_lines.filtered(
+            lambda line: (
+                line.product_id.field_service_tracking == "sale"
+                or (
+                    self.portal_dayroute_id
+                    and line.product_id.field_service_tracking == "no"
+                    and line.product_id.type == "service"
+                )
+            )
+        )
+        existing_sale_fsm = pending_sale_lines and self.env["fsm.order"].search(
+            [("sale_id", "=", self.id), ("sale_line_id", "=", False)], limit=1
         )
         return len(
             pending_lines.filtered(
                 lambda line: line.product_id.field_service_tracking == "line"
             )
-        ) + bool(
-            pending_lines.filtered(
-                lambda line: line.product_id.field_service_tracking == "sale"
-            )
-        )
+        ) + bool(pending_sale_lines and not existing_sale_fsm)
 
     def _prepare_fsm_values(self, **kwargs):
         kwargs.setdefault("service_type", self._get_service_type())

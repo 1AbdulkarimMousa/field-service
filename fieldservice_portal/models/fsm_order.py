@@ -35,9 +35,7 @@ class FSMOrder(models.Model):
 
     def _get_notification_partner(self):
         self.ensure_one()
-        if self.location_id.owner_id:
-            return self.location_id.owner_id
-        return self.partner_id or self.env["res.partner"]
+        return self.location_id.owner_id
 
     def _get_service_type(self):
         self.ensure_one()

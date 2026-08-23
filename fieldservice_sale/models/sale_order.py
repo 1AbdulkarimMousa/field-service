@@ -179,7 +179,8 @@ class SaleOrder(models.Model):
             lambda L: (
                 L.product_id.field_service_tracking == "sale"
                 or (
-                    self.fsm_location_id
+                    "portal_dayroute_id" in self._fields
+                    and self.portal_dayroute_id
                     and L.product_id.field_service_tracking == "no"
                     and L.product_id.type == "service"
                 )
@@ -264,7 +265,6 @@ class SaleOrder(models.Model):
                 and order.sale_order_template_id.service_type == "survey"
                 for order in self
             )
-            or any(order.fsm_location_id for order in self)
         ):
             if not self.fsm_location_id:
                 raise ValidationError(self.env._("FSM Location must be set"))

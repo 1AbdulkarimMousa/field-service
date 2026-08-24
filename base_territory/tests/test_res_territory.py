@@ -94,3 +94,6 @@ class TestResTerritory(TransactionCase):
             self.env["res.district"].find_by_coordinates(5, 5), self.district
         )
         self.assertFalse(self.env["res.district"].find_by_coordinates(20, 20))
+
+    def test_find_district_without_longitude(self):
+        self.assertFalse(self.env["res.district"].find_by_coordinates(0.0, None))

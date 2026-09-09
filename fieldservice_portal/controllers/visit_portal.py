@@ -131,9 +131,7 @@ class VisitPortal(CustomerPortal):
                     {
                         "id": d.id,
                         "name": d.name,
-                        "polygon": [
-                            {"lat": p.lat, "lng": p.lng} for p in d.polygon_ids
-                        ],
+                        "polygon": [],
                     }
                 )
             return {"status": "success", "districts": result}

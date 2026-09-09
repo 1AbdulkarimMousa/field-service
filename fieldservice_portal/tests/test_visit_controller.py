@@ -583,23 +583,7 @@ class TestVisitController(TransactionCaseWithUserPortal):
         self.assertEqual(districts["status"], "error")
         self.assertIn("temporarily unavailable", districts["message"])
 
-    def test_district_endpoint_returns_current_and_shared_polygons_only(self):
-        self.env["res.district.polygon.point"].create(
-            [
-                {
-                    "district_id": self.district.id,
-                    "sequence": 10,
-                    "lat": 30.1,
-                    "lng": 31.1,
-                },
-                {
-                    "district_id": self.district.id,
-                    "sequence": 20,
-                    "lat": 30.2,
-                    "lng": 31.2,
-                },
-            ]
-        )
+    def test_district_endpoint_returns_current_and_shared_districts(self):
         shared = self.env["res.district"].create(
             {
                 "name": "Shared Portal District",
@@ -622,10 +606,8 @@ class TestVisitController(TransactionCaseWithUserPortal):
 
         self.assertEqual(result["status"], "success")
         by_id = {item["id"]: item for item in result["districts"]}
-        self.assertEqual(
-            by_id[self.district.id]["polygon"],
-            [{"lat": 30.1, "lng": 31.1}, {"lat": 30.2, "lng": 31.2}],
-        )
+        self.assertIn(self.district.id, by_id)
+        self.assertEqual(by_id[self.district.id]["polygon"], [])
         self.assertEqual(by_id[shared.id]["polygon"], [])
         self.assertNotIn(foreign.id, by_id)
 

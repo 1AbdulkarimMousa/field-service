@@ -9,7 +9,7 @@
     "category": "Hidden",
     "author": "Gray Matter Logic, Odoo Community Association (OCA)",
     "website": "https://github.com/OCA/field-service",
-    "depends": ["base"],
+    "depends": ["base", "contacts"],
     "data": [
         "security/ir.model.access.csv",
         "views/res_territory.xml",
